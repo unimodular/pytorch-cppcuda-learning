@@ -1,0 +1,215 @@
+vscode 扩展 NVIDIA Nsight Visual Studio Code Edition 调试使用：
+
+
+
+删除所有要调试的包
+
+可能会遇到报错：
+
+Program received signal SIGINT, Interrupt.
+0x000072a0c71107a7 in wait4 () from /lib/x86_64-linux-gnu/libc.so.6
+2
+No source file named /home/wyz/projects/cpplearning_debug/interpolation_kernel.cu.
+
+
+原因：task.json 文件中的路径设置有问题。要设为绝对路径，然后卸载重新编译
+
+
+系统级安全权限问题
+pid命令：echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope，这样输入pid才能启动
+
+
+可能问题：pid有两个值：
+方法：
+ps aux | grep "python.*debug_launcher.py" | grep -v conda | grep -v grep | awk '{print $2}'
+
+
+ps aux | grep "python.*debug_launcher_1.py" | grep -v conda | grep -v grep | awk '{print $2}'
+
+
+
+
+
+
+pip uninstall diff-gaussian-rasterization
+pip uninstall cppcuda_pytorial
+rm -rf build *.egg-info && find . -name "*.so" -delete
+pip install -e .
+
+
+pgrep -f debug_launcher_1.py
+
+
+ps aux | grep debug_launcher.py | grep -v grep | awk '{print $2}'
+在启动程序之前一开始得有一个断点
+先启动个input程序，然后按F5，然后输入PID，然后再打断点，就可以调试了！
+先启动个input程序，然后按F5，然后输入PID，然后再打断点，就可以调试了！
+先启动个input程序，然后按F5，然后输入PID，然后再打断点，就可以调试了！
+
+
+
+
+
+基于NVIDIA Nsight Visual Studio Code Edition的调试
+
+# setup.py
+from setuptools import setup
+from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+
+setup(
+    name='trilinear_interpolation_ext',  # 定义一个清晰的模块名
+    ext_modules=[
+        CUDAExtension(
+            name='trilinear_interpolation_ext', # C++扩展的名称
+            sources=[
+                'interpolation_kernel.cu',
+                'interpolation.cpp' # 确保两个源文件都被包含
+            ],
+            extra_compile_args={
+                'cxx': ['-g'], # 为C++代码也加上调试信息
+                'nvcc': ['-g', '-G'] # 为CUDA代码加上调试信息
+            }
+        )
+    ],
+    cmdclass={
+        'build_ext': BuildExtension
+    }
+)
+
+
+在您的项目根目录打开一个终端（确保Conda环境已激活）。
+运行以下命令：
+code
+Bash
+python setup.py build_ext --inplace
+
+
+
+
+
+
+
+
+
+
+
+第二阶段：准备调试环境
+现在我们有了带调试信息的 .so 文件，接下来配置Python脚本和调试器。
+步骤 2.1：编写Python调试启动器 debug_launcher.py
+这个脚本将作为宿主程序，加载我们的 .so 文件，并在调用CUDA代码前暂停。
+
+
+
+
+# debug_launcher.py
+import torch
+import cppcuda_tutorial # <-- 导入我们刚刚用 setup.py 编译的模块
+
+print(">>> [HOST] Python script started.")
+
+# 1. 准备输入数据
+device = torch.device("cuda:0")
+feats = torch.randn(2, 8, 16, device=device, dtype=torch.float32)
+# 将 points 的值范围限定在 [-1, 1]
+points = torch.rand(2, 3, device=device, dtype=torch.float32) * 2 - 1 
+
+print(">>> [HOST] Input tensors created.")
+
+# 2. 暂停，等待我们附加调试器
+print("="*50)
+print(">>> [HOST] Ready to call CUDA kernel.")
+print(">>> [HOST] Attach your CUDA debugger now!")
+input(">>> [HOST] Press Enter to continue...") # 程序会在这里停住，直到你按回车
+print("="*50)
+
+# 3. 调用CUDA函数
+print(">>> [HOST] Calling CUDA function 'trilinear_interpolation'...")
+# 在 interpolation_kernel.cu 的 trilinear_fw_kernel 函数里打上断点！
+outputs = cppcuda_tutorial.trilinear_interpolation(feats, points)
+print(">>> [HOST] CUDA function finished.")
+
+print(">>> [HOST] Output shapes:")
+print(f"    - Output 1: {outputs[0].shape}")
+print(f"    - Output 2: {outputs[1].shape}")
+
+
+步骤 2.2：配置VS Code调试器 .vscode/launch.json
+这个文件告诉VS Code如何进行“附加”操作。我们将使用最可靠的手动输入PID方式。
+code
+Json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CUDA C++: Attach to Python (Trilinear)",
+            "type": "cuda-gdb",
+            "request": "attach",
+            "processId": "${input:processIdToAttach}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "processIdToAttach",
+            "type": "promptString",
+            "description": "Enter the PID of the Python script (debug_launcher.py)."
+        }
+    ]
+}```
+
+github上已经配置好了
+---
+
+### **第三阶段：执行“调试之舞”**
+
+万事俱备，现在开始我们的分步实验！
+
+1.  **设置断点**：打开 `interpolation_kernel.cu` 文件，设置一个断点。
+
+2.  **运行Python脚本**：在一个VS Code终端中，运行：
+    ```bash
+    python debug_launcher.py
+    ```
+    您会看到程序打印信息后，停在 "Press Enter to continue..."。
+
+3.  **获取PID**：**再打开一个新的VS Code终端**，运行：
+    ```bash
+    pgrep -f debug_launcher.py
+    ```
+    它会返回一个数字（比如 `345678`）。**复制这个数字**。
+
+4.  **附加调试器**：
+    *   切换到VS Code左侧的“运行和调试”面板。
+    *   确保顶部的配置是 **"CUDA C++: Attach to Python (Trilinear)"**。
+    *   **按 `F5`**。
+
+5.  **输入PID**：
+    *   VS Code顶部会弹出一个输入框。
+    *   **将您刚刚复制的PID粘贴进去，然后按回车**。
+
+6.  **触发断点**：
+    *   等待调试器成功附加（底部状态栏变色）。
+    *   回到您运行 `debug_launcher.py` 的**第一个终端**。
+    *   **按一下回车键**。
+
+
+
+
+添加新cpp文件的简要流程
+方法一：独立可执行文件（推荐新手）
+
+创建cpp文件 - 在项目根目录下创建新的.cpp文件
+修改CMakeLists.txt - 添加一行：add_executable(文件名 文件名.cpp)
+重新配置 - 运行CMake: Configure
+构建项目 - 运行CMake: Build
+选择目标 - 运行CMake: Set Launch Target选择新文件
+运行程序 - 运行CMake: Debug或CMake: Run Without Debugging
+
+方法二：添加到现有可执行文件
+
+创建cpp文件 - 在项目根目录下创建.cpp文件
+修改CMakeLists.txt - 在现有的add_executable行中添加新文件：
+cmakeadd_executable(main main.cpp 新文件.cpp)
+
+重新配置和构建 - 运行CMake: Configure然后CMake: Build
+运行 - 直接运行main目标即可
+

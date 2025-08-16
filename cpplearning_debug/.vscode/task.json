@@ -1,0 +1,46 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mynvcc_build_so",
+            "type": "shell",
+            "command": "/usr/local/cuda-12.8/bin/nvcc",
+            "args": [
+                "-g",
+                "-G",
+                "--generate-line-info",
+                "--device-debug",
+            
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.so",
+                "-shared",
+                "-fPIC",
+               
+                "${file}",
+               
+                "-I", "/home/wyz/miniforge3/envs/cppcuda/include/python3.10",
+                "-I", "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/include",
+                "-I", "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/include/torch/csrc/api/include",
+      
+                "-L", "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/lib",
+      
+                "-lc10",
+                "-ltorch",
+                "-ltorch_cpu",
+                "-ltorch_cuda", 
+                "-ltorch_python"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}

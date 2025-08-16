@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CUDA C++: Attach to Python (cppcuda_tutorial)",
+            "type": "cuda-gdb",
+            "request": "attach",
+            "processId": "${input:processIdToAttach}"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "processIdToAttach",
+            "type": "promptString",
+            "description": "Enter the PID of the Python script (debug_launcher.py)."
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+# ninja log v5
+1	8191	1755271697718325324	/home/wyz/projects/pytorch-cppcuda-tutorial/build/temp.linux-x86_64-cpython-310/interpolation.o	1c984628fbe6677e
+1	23749	1755271713269988022	/home/wyz/projects/pytorch-cppcuda-tutorial/build/temp.linux-x86_64-cpython-310/interpolation_kernel.o	6bca87516ea9f269
+13	8180	1755272441512974072	/home/wyz/projects/pytorch-cppcuda-tutorial/build/temp.linux-x86_64-cpython-310/interpolation.o	1c984628fbe6677e
+13	23420	1755272456746655416	/home/wyz/projects/pytorch-cppcuda-tutorial/build/temp.linux-x86_64-cpython-310/interpolation_kernel.o	6bca87516ea9f269

@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/wyz/miniforge3/envs/cppcuda/include/python3.10",
+                "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/include",
+                "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/include/torch/csrc/api/include",
+                "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/include/ATen",
+                "/home/wyz/miniforge3/envs/cppcuda/lib/python3.10/site-packages/torch/include/c10",
+                "/usr/local/cuda-12.8/include",
+                "/usr/local/cuda-12.8/targets/x86_64-linux/include"
+            ],
+            "defines": [
+                "TORCH_EXTENSION_NAME",
+                "TORCH_API_INCLUDE_EXTENSION_H",
+                "__CUDA_ARCH__=1200",
+                "CUDA_ARCH_BIN=\"12.0\"",
+                "CUDA_ARCH_PTX=\"12.0\""
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+            // "compileCommands": "${workspaceFolder}/build/compile_commands.json"
+        }
+    ],
+    "version": 4
+}
